@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connito API Monitor</title>
+  <style>
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --surface2:  #1c2538;
+      --border:    #1e2d45;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --accent:    #38bdf8;
+
+      --c-distribute:       #38bdf8;
+      --c-train:            #4ade80;
+      --c-minercommit1:     #fb923c;
+      --c-minercommit2:     #f97316;
+      --c-submission:       #a78bfa;
+      --c-validate:         #facc15;
+      --c-merge:            #22d3ee;
+      --c-validatorcommit1: #f472b6;
+      --c-validatorcommit2: #ec4899;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── top bar ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .logo h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; }
+    .logo span { color: var(--accent); }
+
+    .header-right { display: flex; align-items: center; gap: 18px; font-size: .78rem; color: var(--muted); }
+    #last-updated { font-variant-numeric: tabular-nums; }
+    .refresh-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; font-size: .75rem;
+    }
+    .spin { animation: spin 2s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── layout ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
+
+    .section-title {
+      font-size: .7rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* ── cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+
+    /* ── hero: current phase ── */
+    .phase-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 720px) { .phase-hero { grid-template-columns: 1fr; } }
+
+    .phase-main {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -.5px;
+    }
+    .phase-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px currentColor;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .meta-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .meta-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .meta-value { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* progress bar */
+    .progress-wrap {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .progress-header {
+      display: flex; justify-content: space-between;
+      font-size: .75rem; color: var(--muted); margin-bottom: 10px;
+    }
+    .progress-bar-bg {
+      background: var(--border);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s ease;
+    }
+    .progress-footer {
+      display: flex; justify-content: space-between;
+      font-size: .72rem; color: var(--muted); margin-top: 8px;
+    }
+
+    /* ── phase timeline ── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .tl-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 90px 90px 80px;
+      gap: 0;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: .8rem;
+      transition: background .2s;
+    }
+    .tl-row:last-child { border-bottom: none; }
+    .tl-row:hover { background: var(--surface2); }
+    .tl-row.current { background: var(--surface2); }
+    .tl-header {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--muted);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tl-header { grid-template-columns: 130px 1fr 90px 90px 80px; }
+
+    .phase-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 600;
+    }
+    .phase-tag-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .mini-bar-bg {
+      background: var(--border); border-radius: 99px; height: 5px;
+      overflow: hidden; flex: 1; min-width: 40px;
+    }
+    .mini-bar-fill { height: 100%; border-radius: 99px; min-width: 3px; }
+    .tl-bar-wrap { display: flex; align-items: center; gap: 8px; padding: 0 8px; }
+    .num { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+    .num.highlight { color: var(--text); font-weight: 600; }
+    .badge-current {
+      font-size: .6rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 2px 8px;
+      border-radius: 20px; background: rgba(74,222,128,.15);
+      color: #4ade80; border: 1px solid rgba(74,222,128,.3);
+      width: fit-content;
+    }
+
+    /* ── two-col layout for bottom cards ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── validator whitelist ── */
+    .address-list { display: flex; flex-direction: column; gap: 8px; }
+    .address-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border-radius: 8px;
+      padding: 10px 12px; font-size: .72rem;
+    }
+    .addr-idx {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--border); display: flex; align-items: center;
+      justify-content: center; font-size: .65rem; font-weight: 700;
+      color: var(--muted); flex-shrink: 0;
+    }
+    .addr-text { font-family: 'Fira Mono', 'Courier New', monospace; word-break: break-all; color: var(--accent); }
+
+    /* ── peer IDs ── */
+    .peer-list { display: flex; flex-direction: column; gap: 10px; }
+    .peer-item {
+      background: var(--surface2); border-radius: 8px; padding: 12px 14px;
+    }
+    .peer-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .peer-parts { display: flex; flex-wrap: wrap; gap: 4px; }
+    .peer-part {
+      font-family: 'Fira Mono', 'Courier New', monospace;
+      font-size: .7rem; border-radius: 4px; padding: 2px 6px;
+    }
+    .peer-part.proto { background: rgba(56,189,248,.12); color: var(--accent); }
+    .peer-part.addr  { background: rgba(167,139,250,.12); color: #a78bfa; }
+    .peer-part.id    { background: rgba(74,222,128,.08);  color: #4ade80; }
+
+    /* ── previous phase ── */
+    .prev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media (max-width: 600px) { .prev-grid { grid-template-columns: repeat(2, 1fr); } }
+    .prev-item {
+      background: var(--surface2); border-radius: 8px; padding: 10px 12px;
+    }
+    .prev-name { font-size: .68rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+    .prev-blocks { font-size: .75rem; font-family: 'Fira Mono', monospace; color: var(--text); }
+
+    /* ── error / loading ── */
+    .loading-msg { color: var(--muted); font-size: .9rem; text-align: center; padding: 40px; }
+    .error-pill {
+      background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
+      color: #f87171; border-radius: 8px; padding: 10px 16px;
+      font-size: .8rem; margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <h1>Connito <span>API</span> Monitor</h1>
+  </div>
+  <div class="header-right">
+    <span>Updated: <span id="last-updated">—</span></span>
+    <div class="refresh-badge">
+      <span class="spin" id="spin-icon" style="display:none">⟳</span>
+      <span>Auto-refresh 6s</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="error-box" class="error-pill" style="display:none"></div>
+
+  <!-- Current Phase Hero -->
+  <p class="section-title">Current Phase</p>
+  <div class="phase-hero">
+    <div class="card phase-main" id="phase-card">
+      <div class="loading-msg">Loading…</div>
+    </div>
+    <div class="card" id="progress-card">
+      <div class="loading-msg">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Phase Timeline -->
+  <p class="section-title">Cycle Timeline — Blocks Until Each Phase</p>
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="tl-header tl-row">
+      <div>Phase</div>
+      <div style="padding-left:8px">Progress in Cycle</div>
+      <div style="text-align:right">Start Block</div>
+      <div style="text-align:right">End Block</div>
+      <div style="text-align:right">Blocks ↓</div>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="loading-msg">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Bottom two-col -->
+  <div class="two-col" style="margin-top:20px">
+
+    <!-- Previous Phase Blocks -->
+    <div>
+      <p class="section-title">Previous Phase Blocks</p>
+      <div class="card" id="prev-phase-card">
+        <div class="loading-msg">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Init Peer IDs -->
+    <div>
+      <p class="section-title">Init Peer IDs</p>
+      <div class="card" id="peer-card">
+        <div class="loading-msg">Loading…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Validator Whitelist (full width) -->
+  <p class="section-title">Validator Whitelist</p>
+  <div class="card" id="whitelist-card">
+    <div class="loading-msg">Loading…</div>
+  </div>
+</main>
+
+<script>
+// ── Phase metadata ──────────────────────────────────────────────────────────
+const PHASE_ORDER = [
+  "Distribute","Train","MinerCommit1","MinerCommit2",
+  "Submission","Validate","Merge","ValidatorCommit1","ValidatorCommit2"
+];
+const PHASE_COLOR = {
+  Distribute:       "var(--c-distribute)",
+  Train:            "var(--c-train)",
+  MinerCommit1:     "var(--c-minercommit1)",
+  MinerCommit2:     "var(--c-minercommit2)",
+  Submission:       "var(--c-submission)",
+  Validate:         "var(--c-validate)",
+  Merge:            "var(--c-merge)",
+  ValidatorCommit1: "var(--c-validatorcommit1)",
+  ValidatorCommit2: "var(--c-validatorcommit2)",
+};
+
+function phaseColor(name) {
+  return PHASE_COLOR[name] || "var(--accent)";
+}
+
+function fmt(n) { return Number(n).toLocaleString(); }
+
+// ── Parse a multiaddr string into labelled parts ────────────────────────────
+function parseMultiaddr(addr) {
+  // e.g. /ip4/64.23.147.16/tcp/7003/p2p/12D3KooW...
+  const parts = addr.replace(/^\//, '').split('/');
+  const out = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const proto = parts[i];
+    const val   = parts[i + 1] || '';
+    if (!proto) continue;
+    if (proto === 'p2p') {
+      out.push({ type: 'proto', val: 'p2p' });
+      out.push({ type: 'id',   val });
+    } else {
+      out.push({ type: 'proto', val: proto });
+      out.push({ type: 'addr',  val });
+    }
+  }
+  return out;
+}
+
+// ── Render functions ────────────────────────────────────────────────────────
+function renderPhaseHero(phase) {
+  const color = phaseColor(phase.phase_name);
+  const total = phase.blocks_into_phase + phase.blocks_remaining_in_phase;
+  const pct   = total > 0 ? Math.round((phase.blocks_into_phase / total) * 100) : 0;
+
+  document.getElementById('phase-card').innerHTML = `
+    <div class="phase-badge">
+      <span class="phase-dot" style="color:${color};background:${color}"></span>
+      ${phase.phase_name}
+    </div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Chain Block</div>
+        <div class="meta-value">${fmt(phase.block)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Cycle Index</div>
+        <div class="meta-value">#${fmt(phase.cycle_index)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Phase Index</div>
+        <div class="meta-value">${phase.phase_index}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Cycle Block</div>
+        <div class="meta-value">${phase.cycle_block_index} / ${phase.cycle_length}</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('progress-card').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div class="meta-label" style="margin-bottom:8px">Phase Progress</div>
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span style="color:${color};font-weight:700">${phase.phase_name}</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="progress-footer">
+          <span>${fmt(phase.blocks_into_phase)} blocks in</span>
+          <span>${fmt(phase.blocks_remaining_in_phase)} remaining</span>
+        </div>
+      </div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Phase Start</div>
+        <div class="meta-value" style="font-size:.9rem">${fmt(phase.phase_start_block)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Phase End</div>
+        <div class="meta-value" style="font-size:.9rem">${fmt(phase.phase_end_block)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTimeline(currentPhaseName, blocksUntil) {
+  const maxBlocks = Math.max(...Object.values(blocksUntil).map(v => v[2]));
+
+  const rows = PHASE_ORDER.map(name => {
+    const data = blocksUntil[name];
+    if (!data) return '';
+    const [start, end, until] = data;
+    const isCurrent = name === currentPhaseName;
+    const color = phaseColor(name);
+    const pct = maxBlocks > 0 ? Math.max(2, Math.round(((maxBlocks - until) / maxBlocks) * 100)) : 0;
+
+    return `
+      <div class="tl-row ${isCurrent ? 'current' : ''}">
+        <div class="phase-tag">
+          <span class="phase-tag-dot" style="background:${color}"></span>
+          <span style="color:${isCurrent ? color : 'var(--text)'}">${name}<span style="color:var(--muted);font-weight:400;font-size:.85em">(${fmt(end - start)})</span></span>
+          ${isCurrent ? '<span class="badge-current" style="margin-left:4px">NOW</span>' : ''}
+        </div>
+        <div class="tl-bar-wrap">
+          <div class="mini-bar-bg">
+            <div class="mini-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+        <div class="num">${fmt(start)}</div>
+        <div class="num">${fmt(end)}</div>
+        <div class="num ${isCurrent ? 'highlight' : ''}">${until === 0 ? '▶ now' : fmt(until)}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('timeline').innerHTML = rows;
+}
+
+function renderPrevPhase(prev) {
+  const items = PHASE_ORDER.map(name => {
+    const data = prev[name];
+    if (!data) return '';
+    const [start, end] = data;
+    return `
+      <div class="prev-item">
+        <div class="prev-name" style="color:${phaseColor(name)}">${name}</div>
+        <div class="prev-blocks">${fmt(start)} – ${fmt(end)}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('prev-phase-card').innerHTML = `<div class="prev-grid">${items}</div>`;
+}
+
+function renderWhitelist(list) {
+  const items = list.map((addr, i) => `
+    <div class="address-item">
+      <div class="addr-idx">${i + 1}</div>
+      <div class="addr-text">${addr}</div>
+    </div>
+  `).join('');
+  document.getElementById('whitelist-card').innerHTML = `<div class="address-list">${items}</div>`;
+}
+
+function renderPeers(peers) {
+  const items = peers.map((raw, i) => {
+    const parts = parseMultiaddr(raw);
+    const chips = parts.map(p => `<span class="peer-part ${p.type}">${p.val}</span>`).join('');
+    return `
+      <div class="peer-item">
+        <div class="peer-label">Peer ${i + 1}</div>
+        <div class="peer-parts">${chips}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('peer-card').innerHTML = `<div class="peer-list">${items}</div>`;
+}
+
+// ── Fetch & update ──────────────────────────────────────────────────────────
+async function refresh() {
+  document.getElementById('spin-icon').style.display = 'inline-block';
+  try {
+    const res  = await fetch('/api/all');
+    const data = await res.json();
+
+    document.getElementById('error-box').style.display = 'none';
+
+    if (data.get_phase)                renderPhaseHero(data.get_phase);
+    if (data.blocks_until_next_phase)  renderTimeline(data.get_phase?.phase_name, data.blocks_until_next_phase);
+    if (data.previous_phase_blocks)    renderPrevPhase(data.previous_phase_blocks);
+    if (data.get_validator_whitelist)  renderWhitelist(data.get_validator_whitelist);
+    if (data.get_init_peer_id)         renderPeers(data.get_init_peer_id);
+
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch (err) {
+    const box = document.getElementById('error-box');
+    box.style.display = 'block';
+    box.textContent = `Failed to fetch data: ${err.message}`;
+  } finally {
+    document.getElementById('spin-icon').style.display = 'none';
+  }
+}
+
+refresh();
+setInterval(refresh, 6000);
+</script>
+</body>
+</html>
