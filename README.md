@@ -26,10 +26,12 @@ Open http://localhost:8080 in your browser.
 ## Run with PM2
 
 ```bash
-pm2 start "uvicorn app:app --host 0.0.0.0 --port 8080" \
+pm2 start "uvicorn app:app --host 0.0.0.0 --port 8080 --workers 4 --loop uvloop" \
   --name connito-api \
   --cwd /root/connito-api
 pm2 save
+
+uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop
 ```
 
 ## Dashboard features

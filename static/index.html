@@ -3,259 +3,442 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connito API Monitor</title>
+  <title>Connito Monitor</title>
   <style>
     :root {
-      --bg:        #0b0f1a;
-      --surface:   #111827;
-      --surface2:  #1c2538;
-      --border:    #1e2d45;
-      --text:      #e2e8f0;
-      --muted:     #64748b;
-      --accent:    #38bdf8;
+      --bg:       #080c14;
+      --surface:  #0e1420;
+      --surface2: #141c2e;
+      --surface3: #1a2440;
+      --border:   #1e2d45;
+      --text:     #e2e8f0;
+      --muted:    #4a6080;
+      --muted2:   #64748b;
+      --accent:   #38bdf8;
+      --green:    #4ade80;
+      --yellow:   #facc15;
+      --orange:   #fb923c;
+      --red:      #f87171;
+      --purple:   #a78bfa;
+      --pink:     #f472b6;
+      --cyan:     #22d3ee;
 
-      --c-distribute:       #38bdf8;
-      --c-train:            #4ade80;
-      --c-minercommit1:     #fb923c;
-      --c-minercommit2:     #f97316;
-      --c-submission:       #a78bfa;
-      --c-validate:         #facc15;
-      --c-merge:            #22d3ee;
-      --c-validatorcommit1: #f472b6;
-      --c-validatorcommit2: #ec4899;
+      --c-Distribute:       #38bdf8;
+      --c-Train:            #4ade80;
+      --c-MinerCommit1:     #fb923c;
+      --c-MinerCommit2:     #f97316;
+      --c-Submission:       #a78bfa;
+      --c-Validate:         #facc15;
+      --c-Merge:            #22d3ee;
+      --c-ValidatorCommit1: #f472b6;
+      --c-ValidatorCommit2: #ec4899;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
       min-height: 100vh;
-      padding: 0 0 60px;
     }
 
-    /* ── top bar ── */
+    /* ── scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── header ── */
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      position: sticky; top: 0; z-index: 200;
     }
     .logo { display: flex; align-items: center; gap: 10px; }
     .logo-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #4ade80;
-      box-shadow: 0 0 8px #4ade80;
-      animation: pulse 2s ease-in-out infinite;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+      animation: blink 2s ease-in-out infinite;
     }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .logo h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; }
-    .logo span { color: var(--accent); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .logo h1 { font-size: 1rem; font-weight: 700; letter-spacing: .3px; }
+    .logo h1 span { color: var(--accent); }
 
-    .header-right { display: flex; align-items: center; gap: 18px; font-size: .78rem; color: var(--muted); }
-    #last-updated { font-variant-numeric: tabular-nums; }
-    .refresh-badge {
+    .hdr-right { display: flex; align-items: center; gap: 16px; }
+    .hdr-badge {
       display: flex; align-items: center; gap: 6px;
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 4px 12px; font-size: .75rem;
+      border-radius: 20px; padding: 3px 12px; font-size: .72rem; color: var(--muted2);
     }
-    .spin { animation: spin 2s linear infinite; display: inline-block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: rot 1.2s linear infinite; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    #ts { font-size: .72rem; color: var(--muted2); font-variant-numeric: tabular-nums; }
 
     /* ── layout ── */
-    main { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
+    main { max-width: 1440px; margin: 0 auto; padding: 24px 20px 60px; }
 
-    .section-title {
-      font-size: .7rem; font-weight: 700; letter-spacing: 2px;
+    .section-label {
+      font-size: .62rem; font-weight: 700; letter-spacing: 2.5px;
       text-transform: uppercase; color: var(--muted);
-      margin-bottom: 14px;
+      margin-bottom: 12px; margin-top: 28px;
     }
+    .section-label:first-child { margin-top: 0; }
 
-    /* ── cards ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 22px 24px;
-      margin-bottom: 20px;
+      padding: 20px 22px;
     }
 
-    /* ── hero: current phase ── */
-    .phase-hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 20px;
+    /* ── phase card ── */
+    .phase-name {
+      font-size: 2rem; font-weight: 800; letter-spacing: -.5px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
     }
-    @media (max-width: 720px) { .phase-hero { grid-template-columns: 1fr; } }
-
-    .phase-main {
+    .pdot {
+      width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+      box-shadow: 0 0 10px currentColor;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    /* phase flow (horizontal: phase1 --> phase2 --> …) */
+    .phase-flow {
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding: 6px 2px 10px;
+      margin: 0 -4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
-    .phase-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 2.4rem;
-      font-weight: 800;
-      letter-spacing: -.5px;
-    }
-    .phase-dot {
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      box-shadow: 0 0 12px currentColor;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .meta-item {
+    .phase-flow-step {
+      flex: 0 0 auto;
       background: var(--surface2);
       border-radius: 8px;
-      padding: 12px 14px;
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      max-width: min(200px, 85vw);
     }
-    .meta-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .meta-value { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-
-    /* progress bar */
-    .progress-wrap {
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 14px 16px;
+    .phase-flow-step.is-current {
+      background: var(--surface3);
+      border-color: rgba(74, 222, 128, .35);
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, .12);
     }
-    .progress-header {
-      display: flex; justify-content: space-between;
-      font-size: .75rem; color: var(--muted); margin-bottom: 10px;
-    }
-    .progress-bar-bg {
-      background: var(--border);
-      border-radius: 99px;
-      height: 8px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width .6s ease;
-    }
-    .progress-footer {
-      display: flex; justify-content: space-between;
-      font-size: .72rem; color: var(--muted); margin-top: 8px;
-    }
-
-    /* ── phase timeline ── */
-    .timeline {
+    .phase-flow-head {
       display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .tl-row {
-      display: grid;
-      grid-template-columns: 130px 1fr 90px 90px 80px;
-      gap: 0;
       align-items: center;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: .8rem;
-      transition: background .2s;
-    }
-    .tl-row:last-child { border-bottom: none; }
-    .tl-row:hover { background: var(--surface2); }
-    .tl-row.current { background: var(--surface2); }
-    .tl-header {
-      font-size: .65rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--muted);
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .tl-header { grid-template-columns: 130px 1fr 90px 90px 80px; }
-
-    .phase-tag {
-      display: inline-flex; align-items: center; gap: 6px;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: .72rem;
       font-weight: 600;
+      line-height: 1.25;
     }
-    .phase-tag-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      flex-shrink: 0;
+    .phase-flow-blocks {
+      font-size: .62rem;
+      color: var(--muted2);
+      font-variant-numeric: tabular-nums;
+      margin-top: 5px;
+      line-height: 1.3;
+      word-break: break-all;
     }
-    .mini-bar-bg {
-      background: var(--border); border-radius: 99px; height: 5px;
-      overflow: hidden; flex: 1; min-width: 40px;
+    .phase-flow-arrow {
+      flex: 0 0 auto;
+      align-self: center;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 0 6px;
+      letter-spacing: .5px;
+      user-select: none;
+      opacity: .85;
     }
-    .mini-bar-fill { height: 100%; border-radius: 99px; min-width: 3px; }
-    .tl-bar-wrap { display: flex; align-items: center; gap: 8px; padding: 0 8px; }
-    .num { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
-    .num.highlight { color: var(--text); font-weight: 600; }
-    .badge-current {
-      font-size: .6rem; font-weight: 700; letter-spacing: 1px;
-      text-transform: uppercase; padding: 2px 8px;
-      border-radius: 20px; background: rgba(74,222,128,.15);
-      color: #4ade80; border: 1px solid rgba(74,222,128,.3);
-      width: fit-content;
+    .upcoming-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .phase-subsection {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .phase-subsection-title {
+      font-size: .6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .phase-mismatch {
+      font-size: .72rem; color: var(--yellow); margin-bottom: 14px;
+      padding: 8px 12px; border-radius: 8px;
+      background: rgba(250,204,21,.06); border: 1px solid rgba(250,204,21,.2);
     }
 
-    /* ── two-col layout for bottom cards ── */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+    /* ── progress bar ── */
+    .prog-wrap { margin-bottom: 14px; }
+    .prog-header { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted2); margin-bottom: 8px; }
+    .prog-bg { background: var(--surface3); border-radius: 99px; height: 7px; overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
+    .prog-footer { display: flex; justify-content: space-between; font-size: .68rem; color: var(--muted); margin-top: 6px; }
 
-    /* ── validator whitelist ── */
-    .address-list { display: flex; flex-direction: column; gap: 8px; }
-    .address-item {
+    /* ── round card ── */
+    .round-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    @media (max-width: 500px) { .round-stats { grid-template-columns: repeat(2, 1fr); } }
+    .rs { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+    .rs-lbl { font-size: .62rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); margin-bottom: 3px; }
+    .rs-val { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* ── sparkline ── */
+    .chart-wrap {
+      background: var(--surface2); border-radius: 8px; padding: 14px;
+    }
+    .chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .chart-title { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); }
+    .chart-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+    svg.sparkline { width: 100%; height: 60px; display: block; overflow: visible; }
+
+    .now-badge {
+      font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      padding: 2px 7px; border-radius: 20px;
+      background: rgba(74,222,128,.12); color: var(--green); border: 1px solid rgba(74,222,128,.25);
+    }
+
+    /* ── leaderboard ── */
+    .lb-toolbar {
       display: flex; align-items: center; gap: 10px;
-      background: var(--surface2); border-radius: 8px;
-      padding: 10px 12px; font-size: .72rem;
+      flex-wrap: wrap; margin-bottom: 14px;
     }
-    .addr-idx {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--border); display: flex; align-items: center;
-      justify-content: center; font-size: .65rem; font-weight: 700;
-      color: var(--muted); flex-shrink: 0;
+    .filter-tabs { display: flex; gap: 4px; }
+    .ftab {
+      padding: 5px 14px; border-radius: 20px; font-size: .72rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--muted2);
+      transition: all .15s;
     }
-    .addr-text { font-family: 'Fira Mono', 'Courier New', monospace; word-break: break-all; color: var(--accent); }
+    .ftab.active {
+      background: rgba(56,189,248,.12); color: var(--accent);
+      border-color: rgba(56,189,248,.3);
+    }
+    .search-box {
+      flex: 1; min-width: 180px; max-width: 320px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px; color: var(--text);
+      font-size: .78rem; outline: none;
+      transition: border-color .15s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .search-box::placeholder { color: var(--muted); }
 
-    /* ── peer IDs ── */
-    .peer-list { display: flex; flex-direction: column; gap: 10px; }
-    .peer-item {
+    .lb-count { margin-left: auto; font-size: .72rem; color: var(--muted2); white-space: nowrap; }
+
+    .lb-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: .76rem;
+    }
+    thead th {
+      padding: 9px 12px; text-align: left;
+      font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--muted); background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap; cursor: pointer; user-select: none;
+      transition: color .15s;
+    }
+    thead th:hover { color: var(--text); }
+    thead th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
+    thead th.sorted-desc::after { content: ' ↓'; color: var(--accent); }
+    thead th:first-child { width: 48px; text-align: center; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    td { padding: 8px 12px; vertical-align: middle; white-space: nowrap; }
+    td:first-child { text-align: center; }
+
+    .rank { font-weight: 700; font-size: .8rem; color: var(--muted2); }
+    .rank.gold   { color: #fbbf24; }
+    .rank.silver { color: #94a3b8; }
+    .rank.bronze { color: #c2773e; }
+
+    .score-cell { display: flex; align-items: center; gap: 8px; }
+    .score-bar-bg { background: var(--surface3); border-radius: 99px; height: 4px; width: 60px; overflow: hidden; flex-shrink: 0; }
+    .score-bar-fill { height: 100%; border-radius: 99px; }
+    .score-num { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 44px; }
+
+    .loss-val { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .loss-good   { color: var(--green); }
+    .loss-ok     { color: var(--yellow); }
+    .loss-bad    { color: var(--orange); }
+    .loss-none   { color: var(--muted); }
+
+    .weight-val { font-variant-numeric: tabular-nums; color: var(--muted2); }
+
+    .badge-assigned {
+      font-size: .58rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 20px;
+      background: rgba(74,222,128,.1); color: var(--green); border: 1px solid rgba(74,222,128,.22);
+    }
+
+    .hf-link {
+      color: var(--accent); text-decoration: none; font-family: 'Fira Mono','Courier New',monospace;
+      font-size: .72rem;
+    }
+    .hf-link:hover { text-decoration: underline; }
+    .hf-rev { color: var(--muted); font-size: .68rem; font-family: monospace; margin-left: 4px; }
+
+    .hotkey {
+      font-family: 'Fira Mono','Courier New',monospace; font-size: .68rem; color: var(--muted2);
+      cursor: pointer;
+    }
+    .hotkey:hover { color: var(--text); }
+
+    .eval-chips { display: flex; gap: 3px; flex-wrap: wrap; }
+    .eval-chip {
+      font-size: .6rem; padding: 1px 5px; border-radius: 4px;
+      background: rgba(56,189,248,.08); color: var(--accent); border: 1px solid rgba(56,189,248,.15);
+    }
+
+    /* ── val-loss aggregation chart ── */
+    .vl-chart-card {
+      padding: 12px 0 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .vl-chart-header {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .vl-chart-title {
+      font-size: .6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-right: 4px;
+    }
+    .vl-stats-row { display: flex; gap: 5px; flex-wrap: wrap; }
+    .vl-chip {
+      font-size: .6rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      padding: 2px 8px; border-radius: 20px; border: 1px solid;
+    }
+    .vl-chip-count  { background: rgba(56,189,248,.08);  color: var(--accent);  border-color: rgba(56,189,248,.2); }
+    .vl-chip-best   { background: rgba(74,222,128,.08);  color: var(--green);   border-color: rgba(74,222,128,.2); }
+    .vl-chip-avg    { background: rgba(250,204,21,.08);  color: var(--yellow);  border-color: rgba(250,204,21,.2); }
+    .vl-chip-median { background: rgba(167,139,250,.08); color: var(--purple);  border-color: rgba(167,139,250,.2); }
+    .vl-chip-worst  { background: rgba(248,113,113,.08); color: var(--red);     border-color: rgba(248,113,113,.2); }
+    .vl-chart-wrap { position: relative; }
+    .vl-chart-svg  { width: 100%; display: block; overflow: visible; }
+    .vl-tooltip {
+      position: absolute; pointer-events: none; z-index: 100;
+      background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 9px;
+      font-size: .7rem; font-variant-numeric: tabular-nums;
+      color: var(--text); white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    }
+
+    /* per-miner aggregated loss cell */
+    .vl-agg {
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    .vl-current { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .vl-minmax {
+      display: flex; gap: 5px;
+      font-size: .6rem; color: var(--muted2);
+      font-variant-numeric: tabular-nums;
+    }
+    .vl-mini-lbl { color: var(--muted); }
+
+    .show-more-row td {
+      text-align: center; padding: 12px;
+    }
+    .show-more-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted2); border-radius: 8px; padding: 6px 20px;
+      font-size: .75rem; cursor: pointer; transition: all .15s;
+    }
+    .show-more-btn:hover { background: var(--surface3); color: var(--text); }
+
+    /* ── source label ── */
+    .src-label {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-size: .6rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .src-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .src-url { font-family: 'Fira Mono','Courier New',monospace; font-size: .65rem;
+               color: var(--muted2); font-weight: 400; text-transform: none; letter-spacing: 0; }
+    /* ── misc ── */
+    .loading { color: var(--muted2); font-size: .85rem; text-align: center; padding: 36px; }
+    .error-bar {
+      background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.25);
+      color: var(--red); border-radius: 8px; padding: 9px 14px;
+      font-size: .78rem; margin-bottom: 16px; display: none;
+    }
+
+    /* ── miner detail modal ── */
+    .miner-modal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(8,12,20,.75); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .miner-modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%; max-width: 660px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    }
+    .miner-modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .miner-modal-title {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+      font-size: .9rem; font-weight: 700;
+    }
+    .miner-modal-close {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted2); border-radius: 6px;
+      width: 28px; height: 28px; cursor: pointer; font-size: .8rem;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .miner-modal-close:hover { background: var(--surface3); color: var(--text); }
+    .miner-modal-body { padding: 18px 20px 20px; }
+
+    .mm-stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 500px) { .mm-stats-row { grid-template-columns: repeat(2, 1fr); } }
+    .mm-stat {
+      background: var(--surface2); border-radius: 8px; padding: 8px 10px;
+    }
+    .mm-stat-lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); margin-bottom: 2px; }
+    .mm-stat-val { font-size: .92rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .mm-chart-title {
+      font-size: .6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .mm-chart-wrap {
       background: var(--surface2); border-radius: 8px; padding: 12px 14px;
+      position: relative;
     }
-    .peer-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .peer-parts { display: flex; flex-wrap: wrap; gap: 4px; }
-    .peer-part {
-      font-family: 'Fira Mono', 'Courier New', monospace;
-      font-size: .7rem; border-radius: 4px; padding: 2px 6px;
-    }
-    .peer-part.proto { background: rgba(56,189,248,.12); color: var(--accent); }
-    .peer-part.addr  { background: rgba(167,139,250,.12); color: #a78bfa; }
-    .peer-part.id    { background: rgba(74,222,128,.08);  color: #4ade80; }
-
-    /* ── previous phase ── */
-    .prev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    @media (max-width: 600px) { .prev-grid { grid-template-columns: repeat(2, 1fr); } }
-    .prev-item {
-      background: var(--surface2); border-radius: 8px; padding: 10px 12px;
-    }
-    .prev-name { font-size: .68rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-    .prev-blocks { font-size: .75rem; font-family: 'Fira Mono', monospace; color: var(--text); }
-
-    /* ── error / loading ── */
-    .loading-msg { color: var(--muted); font-size: .9rem; text-align: center; padding: 40px; }
-    .error-pill {
-      background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3);
-      color: #f87171; border-radius: 8px; padding: 10px 16px;
-      font-size: .8rem; margin-bottom: 20px;
+    .mm-chart-tip {
+      position: absolute; pointer-events: none; z-index: 10;
+      background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 7px; padding: 7px 11px;
+      font-size: .75rem; font-variant-numeric: tabular-nums;
+      color: var(--text); white-space: nowrap;
+      box-shadow: 0 6px 18px rgba(0,0,0,.45);
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -264,280 +447,815 @@
 <header>
   <div class="logo">
     <div class="logo-dot"></div>
-    <h1>Connito <span>API</span> Monitor</h1>
+    <h1>Connito <span>Monitor</span></h1>
   </div>
-  <div class="header-right">
-    <span>Updated: <span id="last-updated">—</span></span>
-    <div class="refresh-badge">
-      <span class="spin" id="spin-icon" style="display:none">⟳</span>
-      <span>Auto-refresh 6s</span>
+  <div class="hdr-right">
+    <span id="ts">—</span>
+    <div class="hdr-badge">
+      <span class="spin" id="spin" style="display:none">⟳</span>
+      <span>Live</span>
     </div>
   </div>
 </header>
 
 <main>
-  <div id="error-box" class="error-pill" style="display:none"></div>
+  <div id="err" class="error-bar"></div>
 
-  <!-- Current Phase Hero -->
-  <p class="section-title">Current Phase</p>
-  <div class="phase-hero">
-    <div class="card phase-main" id="phase-card">
-      <div class="loading-msg">Loading…</div>
-    </div>
-    <div class="card" id="progress-card">
-      <div class="loading-msg">Loading…</div>
-    </div>
-  </div>
+  <!-- Current Phase -->
+  <p class="section-label">Current Phase</p>
+  <div class="card" id="phase-card"><div class="loading">Loading…</div></div>
 
-  <!-- Phase Timeline -->
-  <p class="section-title">Cycle Timeline — Blocks Until Each Phase</p>
-  <div class="card" style="padding: 0; overflow: hidden;">
-    <div class="tl-header tl-row">
-      <div>Phase</div>
-      <div style="padding-left:8px">Progress in Cycle</div>
-      <div style="text-align:right">Start Block</div>
-      <div style="text-align:right">End Block</div>
-      <div style="text-align:right">Blocks ↓</div>
+  <!-- Round -->
+  <p class="section-label">Round</p>
+  <div class="card" id="round-card"><div class="loading">Loading…</div></div>
+
+  <!-- Leaderboard (search input stays in DOM — never replaced on keystroke) -->
+  <p class="section-label">Miner Leaderboard</p>
+  <div class="card" id="lb-card">
+    <div class="lb-toolbar">
+      <div class="filter-tabs" id="lb-filter-tabs"></div>
+      <input type="search" class="search-box" id="lb-search-input"
+        placeholder="Search UID · hotkey · repo…" autocomplete="off" spellcheck="false" />
+      <span class="lb-count" id="lb-count">—</span>
     </div>
-    <div class="timeline" id="timeline">
-      <div class="loading-msg">Loading…</div>
+    <div class="lb-table-wrap" id="lb-table-wrap">
+      <div class="loading">Loading…</div>
     </div>
   </div>
 
-  <!-- Bottom two-col -->
-  <div class="two-col" style="margin-top:20px">
-
-    <!-- Previous Phase Blocks -->
-    <div>
-      <p class="section-title">Previous Phase Blocks</p>
-      <div class="card" id="prev-phase-card">
-        <div class="loading-msg">Loading…</div>
-      </div>
-    </div>
-
-    <!-- Init Peer IDs -->
-    <div>
-      <p class="section-title">Init Peer IDs</p>
-      <div class="card" id="peer-card">
-        <div class="loading-msg">Loading…</div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Validator Whitelist (full width) -->
-  <p class="section-title">Validator Whitelist</p>
-  <div class="card" id="whitelist-card">
-    <div class="loading-msg">Loading…</div>
-  </div>
 </main>
 
 <script>
-// ── Phase metadata ──────────────────────────────────────────────────────────
+// ── constants ────────────────────────────────────────────────────────────────
 const PHASE_ORDER = [
   "Distribute","Train","MinerCommit1","MinerCommit2",
   "Submission","Validate","Merge","ValidatorCommit1","ValidatorCommit2"
 ];
 const PHASE_COLOR = {
-  Distribute:       "var(--c-distribute)",
-  Train:            "var(--c-train)",
-  MinerCommit1:     "var(--c-minercommit1)",
-  MinerCommit2:     "var(--c-minercommit2)",
-  Submission:       "var(--c-submission)",
-  Validate:         "var(--c-validate)",
-  Merge:            "var(--c-merge)",
-  ValidatorCommit1: "var(--c-validatorcommit1)",
-  ValidatorCommit2: "var(--c-validatorcommit2)",
+  Distribute:"var(--c-Distribute)", Train:"var(--c-Train)",
+  MinerCommit1:"var(--c-MinerCommit1)", MinerCommit2:"var(--c-MinerCommit2)",
+  Submission:"var(--c-Submission)", Validate:"var(--c-Validate)",
+  Merge:"var(--c-Merge)", ValidatorCommit1:"var(--c-ValidatorCommit1)",
+  ValidatorCommit2:"var(--c-ValidatorCommit2)"
 };
+function pc(name) { return PHASE_COLOR[name] || "var(--accent)"; }
+function fmt(n) { return n == null ? "—" : Number(n).toLocaleString(); }
+function fmtF(n, d=4) { return n == null ? "—" : Number(n).toFixed(d); }
+function trunc(s, n=12) { if (!s) return "—"; return s.length > n ? s.slice(0,6)+"…"+s.slice(-4) : s; }
 
-function phaseColor(name) {
-  return PHASE_COLOR[name] || "var(--accent)";
+// ── leaderboard state ────────────────────────────────────────────────────────
+let lbData = [];
+let lbFilter = "all";
+let lbSort = { col: "score", dir: "desc" };
+let lbSearch = "";
+let lbShowCount = 50;
+
+// ── val_loss history (keyed by uid, retains last 120 timestamped readings) ─────
+const VL_HISTORY_MAX = 120;
+const vlHistory = new Map(); // uid → Map<revision, {v, s, t}> (ordered by insertion)
+
+function vlPush(uid, val, score, rev) {
+  if (val == null) return;
+  let revMap = vlHistory.get(uid);
+  if (!revMap) { revMap = new Map(); vlHistory.set(uid, revMap); }
+  const key = rev || "__none__";
+  // always overwrite so we keep the latest reading for this revision
+  revMap.set(key, { v: val, s: score ?? null, t: Date.now(), rev: rev || null });
 }
 
-function fmt(n) { return Number(n).toLocaleString(); }
+// Returns sorted array of revision data points (oldest first by insertion order)
+function vlRevPoints(uid) {
+  const revMap = vlHistory.get(uid);
+  if (!revMap) return [];
+  return [...revMap.values()].sort((a, b) => a.t - b.t);
+}
 
-// ── Parse a multiaddr string into labelled parts ────────────────────────────
-function parseMultiaddr(addr) {
-  // e.g. /ip4/64.23.147.16/tcp/7003/p2p/12D3KooW...
-  const parts = addr.replace(/^\//, '').split('/');
-  const out = [];
-  for (let i = 0; i < parts.length; i += 2) {
-    const proto = parts[i];
-    const val   = parts[i + 1] || '';
-    if (!proto) continue;
-    if (proto === 'p2p') {
-      out.push({ type: 'proto', val: 'p2p' });
-      out.push({ type: 'id',   val });
-    } else {
-      out.push({ type: 'proto', val: proto });
-      out.push({ type: 'addr',  val });
-    }
+function vlAgg(uid) {
+  const pts = vlRevPoints(uid);
+  if (pts.length === 0) return null;
+  let min = Infinity, max = -Infinity, sum = 0;
+  for (const p of pts) { if (p.v < min) min = p.v; if (p.v > max) max = p.v; sum += p.v; }
+  return { min, max, avg: sum / pts.length, count: pts.length };
+}
+
+// ── per-miner val_loss line chart ─────────────────────────────────────────────
+function buildMinerLineChart(uid) {
+  const pts = vlRevPoints(uid);
+
+  if (pts.length === 0) {
+    return `<div style="color:var(--muted2);font-size:.8rem;text-align:center;padding:28px 0">No data yet.</div>`;
   }
-  return out;
-}
+  if (pts.length === 1) {
+    const p = pts[0];
+    const revLabel = p.rev ? p.rev.slice(0, 7) : "—";
+    return `<div style="color:var(--muted2);font-size:.78rem;text-align:center;padding:20px 0">
+      Only 1 revision seen (<code style="color:var(--accent)">${revLabel}</code>).<br>
+      Chart will expand when a new model revision is submitted.
+    </div>`;
+  }
 
-// ── Render functions ────────────────────────────────────────────────────────
-function renderPhaseHero(phase) {
-  const color = phaseColor(phase.phase_name);
-  const total = phase.blocks_into_phase + phase.blocks_remaining_in_phase;
-  const pct   = total > 0 ? Math.round((phase.blocks_into_phase / total) * 100) : 0;
+  const n      = pts.length;
+  const vlVals = pts.map(p => p.v);
+  const scVals = pts.map(p => p.s).filter(s => s != null);
+  const hasScore = scVals.length > 0;
 
-  document.getElementById('phase-card').innerHTML = `
-    <div class="phase-badge">
-      <span class="phase-dot" style="color:${color};background:${color}"></span>
-      ${phase.phase_name}
-    </div>
-    <div class="meta-grid">
-      <div class="meta-item">
-        <div class="meta-label">Chain Block</div>
-        <div class="meta-value">${fmt(phase.block)}</div>
-      </div>
-      <div class="meta-item">
-        <div class="meta-label">Cycle Index</div>
-        <div class="meta-value">#${fmt(phase.cycle_index)}</div>
-      </div>
-      <div class="meta-item">
-        <div class="meta-label">Phase Index</div>
-        <div class="meta-value">${phase.phase_index}</div>
-      </div>
-      <div class="meta-item">
-        <div class="meta-label">Cycle Block</div>
-        <div class="meta-value">${phase.cycle_block_index} / ${phase.cycle_length}</div>
-      </div>
-    </div>
-  `;
+  const minVL  = Math.min(...vlVals), maxVL = Math.max(...vlVals);
+  const rangeVL = maxVL - minVL || 0.0001;
+  const avgVL  = vlVals.reduce((a, b) => a + b, 0) / vlVals.length;
 
-  document.getElementById('progress-card').innerHTML = `
-    <div style="margin-bottom:16px">
-      <div class="meta-label" style="margin-bottom:8px">Phase Progress</div>
-      <div class="progress-wrap">
-        <div class="progress-header">
-          <span style="color:${color};font-weight:700">${phase.phase_name}</span>
-          <span>${pct}%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width:${pct}%;background:${color}"></div>
-        </div>
-        <div class="progress-footer">
-          <span>${fmt(phase.blocks_into_phase)} blocks in</span>
-          <span>${fmt(phase.blocks_remaining_in_phase)} remaining</span>
-        </div>
-      </div>
-    </div>
-    <div class="meta-grid">
-      <div class="meta-item">
-        <div class="meta-label">Phase Start</div>
-        <div class="meta-value" style="font-size:.9rem">${fmt(phase.phase_start_block)}</div>
-      </div>
-      <div class="meta-item">
-        <div class="meta-label">Phase End</div>
-        <div class="meta-value" style="font-size:.9rem">${fmt(phase.phase_end_block)}</div>
-      </div>
-    </div>
-  `;
-}
+  const minSC = hasScore ? Math.min(...scVals) : 0;
+  const maxSC = hasScore ? Math.max(...scVals) : 1;
+  const rangeSC = maxSC - minSC || 0.0001;
 
-function renderTimeline(currentPhaseName, blocksUntil) {
-  const maxBlocks = Math.max(...Object.values(blocksUntil).map(v => v[2]));
+  const W = 560, H = 190;
+  const PL = 58, PR = 58, PT = 22, PB = 38;
+  const cW = W - PL - PR, cH = H - PT - PB;
 
-  const rows = PHASE_ORDER.map(name => {
-    const data = blocksUntil[name];
-    if (!data) return '';
-    const [start, end, until] = data;
-    const isCurrent = name === currentPhaseName;
-    const color = phaseColor(name);
-    const pct = maxBlocks > 0 ? Math.max(2, Math.round(((maxBlocks - until) / maxBlocks) * 100)) : 0;
+  // evenly spaced x positions by revision index
+  const xS   = i => PL + (n === 1 ? cW / 2 : (i / (n - 1)) * cW);
+  const ySvl = v => PT + cH - ((v - minVL) / rangeVL) * cH;
+  const ySsc = s => PT + cH - ((s - minSC) / rangeSC) * cH;
 
+  // horizontal grid + dual y-axis labels (4 ticks)
+  const grid = [0, 0.33, 0.67, 1].map(frac => {
+    const vl = minVL + frac * rangeVL;
+    const sc = minSC + frac * rangeSC;
+    const y  = ySvl(vl).toFixed(1);
     return `
-      <div class="tl-row ${isCurrent ? 'current' : ''}">
-        <div class="phase-tag">
-          <span class="phase-tag-dot" style="background:${color}"></span>
-          <span style="color:${isCurrent ? color : 'var(--text)'}">${name}<span style="color:var(--muted);font-weight:400;font-size:.85em">(${fmt(end - start)})</span></span>
-          ${isCurrent ? '<span class="badge-current" style="margin-left:4px">NOW</span>' : ''}
+      <line x1="${PL}" y1="${y}" x2="${W - PR}" y2="${y}" stroke="#1e2d45" stroke-width="0.5"/>
+      <text x="${PL - 5}" y="${+y + 3}" text-anchor="end"   fill="#38bdf8" font-size="9" opacity=".8">${vl.toFixed(4)}</text>
+      ${hasScore ? `<text x="${W - PR + 5}" y="${+y + 3}" text-anchor="start" fill="#4ade80" font-size="9" opacity=".8">${sc.toFixed(4)}</text>` : ""}`;
+  });
+
+  // x-axis: revision labels (rotated, truncated to 7 chars)
+  const xLabels = pts.map((p, i) => {
+    const label = p.rev ? p.rev.slice(0, 7) : `#${i + 1}`;
+    const x = xS(i).toFixed(1);
+    return `<text x="${x}" y="${H - 6}" text-anchor="middle"
+      transform="rotate(-35, ${x}, ${H - 6})"
+      fill="#4a6080" font-size="8.5">${label}</text>`;
+  });
+
+  // val_loss polyline + area fill
+  const vlCoords  = pts.map((p, i) => `${xS(i).toFixed(1)},${ySvl(p.v).toFixed(1)}`);
+  const vlFillPts = [...vlCoords,
+    `${xS(n - 1).toFixed(1)},${(PT + cH).toFixed(1)}`,
+    `${xS(0).toFixed(1)},${(PT + cH).toFixed(1)}`].join(" ");
+  const avgVLY  = ySvl(avgVL).toFixed(1);
+
+  // score polyline
+  let scoreLayer = "";
+  if (hasScore) {
+    const scCoords = pts.map((p, i) =>
+      p.s != null ? `${xS(i).toFixed(1)},${ySsc(p.s).toFixed(1)}` : null
+    ).filter(Boolean);
+    const avgSC  = scVals.reduce((a, b) => a + b, 0) / scVals.length;
+    const avgSCY = ySsc(avgSC).toFixed(1);
+    scoreLayer = `
+      <line x1="${PL}" y1="${avgSCY}" x2="${W-PR}" y2="${avgSCY}" stroke="#4ade80" stroke-width="1" stroke-dasharray="4,3" opacity=".4"/>
+      <polyline points="${scCoords.join(" ")}" fill="none" stroke="#4ade80" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${pts.map((p, i) => p.s != null ? `<circle cx="${xS(i).toFixed(1)}" cy="${ySsc(p.s).toFixed(1)}" r="3" fill="#4ade80" opacity=".85"><title>score ${p.s.toFixed(6)}\nrev ${p.rev || "—"}</title></circle>` : "").join("")}
+      <circle cx="${xS(pts.map((p,i)=>p.s!=null?i:-1).filter(i=>i>=0).pop()||0).toFixed(1)}" cy="${ySsc(scVals[scVals.length-1]).toFixed(1)}" r="4.5" fill="#4ade80"/>`;
+  }
+
+  // vertical markers at each revision
+  const vMarkers = pts.map((_, i) =>
+    `<line x1="${xS(i).toFixed(1)}" y1="${PT}" x2="${xS(i).toFixed(1)}" y2="${PT + cH}" stroke="#1e2d45" stroke-width="0.5" stroke-dasharray="2,4"/>`
+  );
+
+  // value labels at each data point
+  const valueLabels = pts.map((p, i) => {
+    const cx  = xS(i);
+    const vlY = ySvl(p.v);
+    const scY = p.s != null ? ySsc(p.s) : null;
+    // place label above dot; if score dot is close, nudge to avoid overlap
+    const vlLabelY = vlY - 10;
+    const scLabelY = scY != null ? (Math.abs(scY - vlY) < 18 ? scY + 14 : scY - 10) : null;
+    return `
+      <text x="${cx.toFixed(1)}" y="${vlLabelY.toFixed(1)}" text-anchor="middle" fill="#38bdf8" font-size="8.5" font-weight="600">${p.v.toFixed(4)}</text>
+      ${scY != null ? `<text x="${cx.toFixed(1)}" y="${scLabelY.toFixed(1)}" text-anchor="middle" fill="#4ade80" font-size="8.5" font-weight="600">${p.s.toFixed(4)}</text>` : ""}`;
+  });
+
+  // invisible hover zones (one per revision) for combined tooltip
+  const slotW = n > 1 ? cW / (n - 1) : cW;
+  const hoverZones = pts.map((p, i) => {
+    const cx     = xS(i);
+    const zoneX  = (cx - slotW / 2).toFixed(1);
+    const zoneW  = slotW.toFixed(1);
+    const scVal  = p.s != null ? p.s.toFixed(6) : "";
+    const revStr = p.rev ? p.rev.slice(0, 7) : `#${i+1}`;
+    return `<rect x="${zoneX}" y="${PT}" width="${zoneW}" height="${cH}" fill="transparent"
+      class="vl-hz" data-rev="${revStr}" data-vl="${p.v.toFixed(6)}" data-sc="${scVal}"/>`;
+  });
+
+  // axis labels
+  const axisLabels = `
+    <text x="${PL - 5}" y="${PT - 8}" text-anchor="end"   fill="#38bdf8" font-size="9" font-weight="700">val_loss</text>
+    ${hasScore ? `<text x="${W - PR + 5}" y="${PT - 8}" text-anchor="start" fill="#4ade80" font-size="9" font-weight="700">score</text>` : ""}`;
+
+  return `
+    <svg class="mm-chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;overflow:visible">
+      <defs>
+        <linearGradient id="mlg${uid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity=".12"/>
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${axisLabels}
+      ${grid.join("")}
+      ${vMarkers.join("")}
+      <line x1="${PL}" y1="${avgVLY}" x2="${W-PR}" y2="${avgVLY}" stroke="#facc15" stroke-width="1" stroke-dasharray="4,3" opacity=".4"/>
+      <polygon points="${vlFillPts}" fill="url(#mlg${uid})"/>
+      <polyline points="${vlCoords.join(" ")}" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${pts.map((p, i) => `<circle cx="${xS(i).toFixed(1)}" cy="${ySvl(p.v).toFixed(1)}" r="3.5" fill="#38bdf8" opacity=".9"/>`).join("")}
+      <circle cx="${xS(n-1).toFixed(1)}" cy="${ySvl(vlVals[n-1]).toFixed(1)}" r="5" fill="#38bdf8"/>
+      ${scoreLayer}
+      ${valueLabels.join("")}
+      ${hoverZones.join("")}
+      ${xLabels.join("")}
+    </svg>
+    <div id="mm-tip-${uid}" class="mm-chart-tip" style="display:none"></div>`;
+}
+
+function openMinerModal(uid) {
+  const r = lbData.find(x => x.uid === uid);
+  if (!r) return;
+
+  const agg  = vlAgg(uid);
+  const hk   = r.hotkey || "";
+  const repo = r.hf_repo_id || "";
+  const scoreC = r.score >= 0.5 ? "var(--green)" : r.score >= 0.2 ? "var(--yellow)" : "var(--orange)";
+
+  const statChips = [
+    ["Score",   fmtF(r.score, 4),        scoreC],
+    ["Val Loss",r.val_loss != null ? fmtF(r.val_loss, 4) : "—", r.val_loss != null ? (r.val_loss < 8 ? "var(--green)" : r.val_loss < 10 ? "var(--yellow)" : "var(--orange)") : "var(--muted)"],
+    ["Min",     agg ? fmtF(agg.min, 4) : "—", "var(--green)"],
+    ["Avg",     agg ? fmtF(agg.avg, 4) : "—", "var(--yellow)"],
+    ["Max",     agg ? fmtF(agg.max, 4) : "—", "var(--red)"],
+    ["Samples", agg ? agg.count : "—",    "var(--accent)"],
+    ["Weight",  r.weight_submitted != null ? fmtF(r.weight_submitted, 4) : "—", "var(--muted2)"],
+    ["Evals",   r.evaluation_count ?? "—", "var(--muted2)"],
+  ].map(([lbl, val, color]) => `
+    <div class="mm-stat">
+      <span class="mm-stat-lbl">${lbl}</span>
+      <span class="mm-stat-val" style="color:${color}">${val}</span>
+    </div>`).join("");
+
+  const repoLine = repo
+    ? `<a class="hf-link" href="https://huggingface.co/${repo}" target="_blank" rel="noopener">${repo}</a>${r.hf_revision ? `<span class="hf-rev">${r.hf_revision.slice(0,7)}</span>` : ""}`
+    : "";
+
+  document.getElementById("miner-modal-title").innerHTML = `
+    <span style="font-size:1.1rem;font-weight:800">UID ${uid}</span>
+    ${r.in_assignment ? '<span class="badge-assigned" style="margin-left:8px">Active</span>' : ""}
+    ${hk ? `<span class="hotkey" style="margin-left:10px;font-size:.72rem" title="${hk}">${hk.slice(0,6)}…${hk.slice(-4)}</span>` : ""}
+    ${repoLine ? `<span style="margin-left:10px">${repoLine}</span>` : ""}`;
+
+  document.getElementById("miner-modal-body").innerHTML = `
+    <div class="mm-stats-row">${statChips}</div>
+    <div class="mm-chart-title">Val Loss &amp; Score by revision</div>
+    <div class="mm-chart-wrap" id="mm-chart-wrap-${uid}">${buildMinerLineChart(uid)}</div>`;
+
+  // wire hover tooltip on revision zones
+  const chartWrap = document.getElementById(`mm-chart-wrap-${uid}`);
+  const tip       = document.getElementById(`mm-tip-${uid}`);
+  if (chartWrap && tip) {
+    chartWrap.addEventListener("mousemove", e => {
+      const hz = e.target.closest(".vl-hz");
+      if (!hz) { tip.style.display = "none"; return; }
+      const base = chartWrap.getBoundingClientRect();
+      tip.style.display = "block";
+      const left = e.clientX - base.left + 14;
+      tip.style.left = (left + 140 > base.width ? left - 155 : left) + "px";
+      tip.style.top  = (e.clientY - base.top - 54) + "px";
+      const sc = hz.dataset.sc;
+      tip.innerHTML =
+        `<div style="color:var(--muted2);font-size:.62rem;margin-bottom:4px;font-family:monospace">${hz.dataset.rev}</div>` +
+        `<div style="color:#38bdf8">val_loss &nbsp;<strong>${hz.dataset.vl}</strong></div>` +
+        (sc ? `<div style="color:#4ade80;margin-top:2px">score &nbsp;&nbsp;&nbsp;&nbsp;<strong>${sc}</strong></div>` : "");
+    });
+    chartWrap.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+  }
+
+  document.getElementById("miner-modal").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeMinerModal() {
+  document.getElementById("miner-modal").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeMinerModal(); });
+
+function buildVlChart(data) {
+  const scored = data
+    .filter(r => r.val_loss != null && r.val_loss > 0)
+    .sort((a, b) => a.val_loss - b.val_loss);
+  if (scored.length === 0) return { html: "", stats: null };
+
+  const vals  = scored.map(r => r.val_loss);
+  const minV  = vals[0];
+  const maxV  = vals[vals.length - 1];
+  const sum   = vals.reduce((a, b) => a + b, 0);
+  const avgV  = sum / vals.length;
+  const medV  = vals.length % 2 === 0
+    ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+    : vals[Math.floor(vals.length / 2)];
+  const range = maxV - minV || 1;
+
+  const W = 800, H = 110;
+  const PL = 42, PR = 36, PT = 8, PB = 20;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const n    = scored.length;
+  const slot = cW / n;
+  const barW = Math.max(1.5, slot * 0.72);
+  const yS   = v => PT + cH - ((v - minV) / range) * cH;
+
+  const bars = scored.map((r, i) => {
+    const x = PL + i * slot + (slot - barW) / 2;
+    const y = yS(r.val_loss);
+    const h = Math.max(2, PT + cH - y);
+    const fill = r.val_loss < 8 ? "#4ade80" : r.val_loss < 10 ? "#facc15" : "#fb923c";
+    return `<rect class="vl-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="${fill}" rx="1" opacity=".82" data-uid="${r.uid}" data-loss="${r.val_loss.toFixed(4)}"/>`;
+  });
+
+  const avgY = yS(avgV).toFixed(1);
+  const medY = yS(medV).toFixed(1);
+
+  // x-axis uid labels at best / median-index / worst
+  const labelIdxs = [...new Set([0, Math.round(n / 2), n - 1])];
+  const xLabels = labelIdxs.map(idx => {
+    const r = scored[idx];
+    const x = (PL + idx * slot + slot / 2).toFixed(1);
+    return `<text x="${x}" y="${H - 4}" text-anchor="middle" fill="#4a6080" font-size="9">uid ${r.uid}</text>`;
+  });
+
+  const svgHTML = `
+    <svg class="vl-chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <text x="${PL - 4}" y="${PT + 5}"      text-anchor="end" fill="#4a6080" font-size="9">${maxV.toFixed(3)}</text>
+      <text x="${PL - 4}" y="${PT + cH + 2}" text-anchor="end" fill="#4a6080" font-size="9">${minV.toFixed(3)}</text>
+      <line x1="${PL}" y1="${avgY}" x2="${W - PR}" y2="${avgY}" stroke="#facc15" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/>
+      <text x="${W - PR + 3}" y="${+avgY + 3}" fill="#facc15" font-size="8" opacity=".7">avg</text>
+      <line x1="${PL}" y1="${medY}" x2="${W - PR}" y2="${medY}" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,3" opacity=".4"/>
+      <text x="${W - PR + 3}" y="${+medY + 3}" fill="#a78bfa" font-size="8" opacity=".65">med</text>
+      ${bars.join("\n      ")}
+      ${xLabels.join("\n      ")}
+    </svg>`;
+
+  return { html: svgHTML, stats: { count: n, best: minV, worst: maxV, avg: avgV, median: medV } };
+}
+
+// ── shared phase helpers ───────────────────────────────────────────────────────
+function progBar(pct, color) {
+  return `
+    <div class="prog-wrap">
+      <div class="prog-header">
+        <span style="color:${color};font-weight:700">Phase progress</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+}
+
+/** All phases with start–end block numbers (from cycle API `blocks_until_next_phase`). */
+function buildPhaseBlocksListHTML(currentName, blocksUntil) {
+  if (!blocksUntil) return "";
+  const steps = [];
+  for (let i = 0; i < PHASE_ORDER.length; i++) {
+    const name = PHASE_ORDER[i];
+    const d = blocksUntil[name];
+    if (!d) continue;
+    const [start, end] = d;
+    const isCur = name === currentName;
+    const color = pc(name);
+    const arrow = steps.length ? '<span class="phase-flow-arrow" aria-hidden="true">--></span>' : "";
+    steps.push(`${arrow}<div class="phase-flow-step${isCur ? " is-current" : ""}">
+        <div class="phase-flow-head">
+          <span class="upcoming-dot" style="background:${color}"></span>
+          <span style="color:${color}">${name}</span>
+          ${isCur ? '<span class="now-badge">NOW</span>' : ""}
         </div>
-        <div class="tl-bar-wrap">
-          <div class="mini-bar-bg">
-            <div class="mini-bar-fill" style="width:${pct}%;background:${color}"></div>
+        <div class="phase-flow-blocks">${fmt(start)} – ${fmt(end)}</div>
+      </div>`);
+  }
+  return `
+    <div class="phase-subsection">
+      <div class="phase-subsection-title">All phases</div>
+      <div class="phase-flow">${steps.join("")}</div>
+    </div>`;
+}
+
+// Dashboard phase snapshot (cached so mismatch banner survives cycle-only ticks)
+let lastLbPhase = null;
+
+// ── Current Phase card (cycle API) ─────────────────────────────────────────────
+function renderPhaseCard(cp, lp, blocksUntil) {
+  if (lp) lastLbPhase = lp;
+  const dash = lastLbPhase;
+
+  const color = pc(cp.phase_name);
+  const total = (cp.phase_end_block - cp.phase_start_block) || 1;
+  const pct   = Math.round((cp.blocks_into_phase / total) * 100);
+
+  const mismatch = dash && (
+    dash.name !== cp.phase_name ||
+    Number(dash.head_block) !== Number(cp.block)
+  );
+
+  document.getElementById("phase-card").innerHTML = `
+    <div class="src-label">
+      <span class="src-dot" style="background:var(--accent)"></span>
+      Cycle API
+      <span class="src-url">cycle-api.connito.ai</span>
+    </div>
+    ${mismatch ? `
+    <div class="phase-mismatch">
+      Dashboard API reports a different view: phase <strong>${dash.name}</strong>, head <strong>${fmt(dash.head_block)}</strong>
+      <span style="opacity:.75"> · dashboard-api.connito.ai</span>
+    </div>` : ""}
+    <div class="phase-name">
+      <span class="pdot" style="color:${color};background:${color}"></span>
+      ${cp.phase_name}
+    </div>
+    ${progBar(pct, color)}
+    <div class="prog-footer" style="margin-top:-8px;margin-bottom:12px">
+      <span>${fmt(cp.blocks_into_phase)} blocks in</span>
+      <span>${fmt(cp.blocks_remaining_in_phase)} remaining</span>
+    </div>
+    ${buildPhaseBlocksListHTML(cp.phase_name, blocksUntil)}
+  `;
+}
+
+// ── render round card ─────────────────────────────────────────────────────────
+function renderRound(round) {
+  const s = round.stats;
+  const totalTracked = (s.scored + s.pending + s.failed) || 1;
+  const scoredPct = Math.round((s.scored / totalTracked) * 100);
+
+  // Build sparkline from history (filter out 0 values, last 24 points)
+  const history = (round.baseline_loss_history || [])
+    .filter(h => h.baseline_loss > 0)
+    .slice(-24);
+
+  document.getElementById("round-card").innerHTML = `
+    <div class="round-stats">
+      <div class="rs">
+        <div class="rs-lbl">Scored</div>
+        <div class="rs-val" style="color:var(--green)">${fmt(s.scored)}</div>
+      </div>
+      <div class="rs">
+        <div class="rs-lbl">Pending</div>
+        <div class="rs-val" style="color:var(--yellow)">${fmt(s.pending)}</div>
+      </div>
+      <div class="rs">
+        <div class="rs-lbl">Failed</div>
+        <div class="rs-val" style="color:var(--red)">${fmt(s.failed)}</div>
+      </div>
+      <div class="rs">
+        <div class="rs-lbl">Roster</div>
+        <div class="rs-val">${fmt(s.roster)}</div>
+      </div>
+      <div class="rs">
+        <div class="rs-lbl">Score Rate</div>
+        <div class="rs-val">${scoredPct}%</div>
+      </div>
+      <div class="rs">
+        <div class="rs-lbl">Downloaded</div>
+        <div class="rs-val">${fmt(s.downloaded)}</div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">Baseline Loss</span>
+        <span class="chart-value">${fmtF(round.baseline_loss, 4)}</span>
+      </div>
+      ${buildSparkline(history)}
+    </div>
+  `;
+}
+
+function buildSparkline(history) {
+  if (history.length < 2) return '<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:16px 0">Not enough data</div>';
+
+  const vals   = history.map(h => h.baseline_loss);
+  const minV   = Math.min(...vals);
+  const maxV   = Math.max(...vals);
+  const range  = maxV - minV || 1;
+  const W = 400, H = 60, PAD = 4;
+
+  const pts = vals.map((v, i) => {
+    const x = PAD + (i / (vals.length - 1)) * (W - PAD * 2);
+    const y = PAD + (1 - (v - minV) / range) * (H - PAD * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const lastX = parseFloat(pts[pts.length - 1].split(",")[0]);
+  const lastY = parseFloat(pts[pts.length - 1].split(",")[1]);
+
+  return `
+    <svg class="sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity=".25"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <polyline points="${pts.join(" ")}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${lastX}" cy="${lastY}" r="3" fill="var(--accent)"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-top:4px">
+      <span>${fmtF(minV,3)} min</span>
+      <span>${fmtF(maxV,3)} max</span>
+    </div>
+  `;
+}
+
+// ── render leaderboard ────────────────────────────────────────────────────────
+function scoreColor(s) {
+  if (s >= 0.5) return "var(--green)";
+  if (s >= 0.2) return "var(--yellow)";
+  return "var(--orange)";
+}
+function lossClass(v) {
+  if (v == null) return "loss-none";
+  if (v < 8)  return "loss-good";
+  if (v < 10) return "loss-ok";
+  return "loss-bad";
+}
+
+function getFilteredSorted() {
+  let rows = [...lbData];
+
+  // filter
+  if (lbFilter === "scored")   rows = rows.filter(r => r.val_loss != null && r.val_loss > 0);
+  if (lbFilter === "assigned") rows = rows.filter(r => r.in_assignment);
+
+  // search
+  if (lbSearch) {
+    const q = lbSearch.toLowerCase();
+    rows = rows.filter(r =>
+      String(r.uid).includes(q) ||
+      (r.hotkey || "").toLowerCase().includes(q) ||
+      (r.hf_repo_id || "").toLowerCase().includes(q)
+    );
+  }
+
+  // sort
+  rows.sort((a, b) => {
+    let av = a[lbSort.col], bv = b[lbSort.col];
+    if (av == null) av = lbSort.dir === "asc" ? Infinity : -Infinity;
+    if (bv == null) bv = lbSort.dir === "asc" ? Infinity : -Infinity;
+    return lbSort.dir === "asc" ? av - bv : bv - av;
+  });
+
+  return rows;
+}
+
+/** @param {boolean} tableOnly if true, skip re-rendering filter tabs (search typing). */
+function renderLeaderboard(tableOnly) {
+  const filtered = getFilteredSorted();
+  const visible  = filtered.slice(0, lbShowCount);
+
+  const colDefs = [
+    { key: "#",              label: "#",           sortable: false },
+    { key: "uid",            label: "UID",         sortable: true  },
+    { key: "score",          label: "Score",       sortable: true  },
+    { key: "val_loss",       label: "Val Loss",    sortable: true  },
+    { key: "weight_submitted", label: "Weight",    sortable: true  },
+    { key: "evaluation_count", label: "Evals",     sortable: true  },
+    { key: "in_assignment",  label: "Assigned",    sortable: true  },
+    { key: "hf_repo_id",     label: "HF Repo",     sortable: false },
+    { key: "hotkey",         label: "Hotkey",      sortable: false },
+  ];
+
+  const ths = colDefs.map(c => {
+    if (!c.sortable) return `<th>${c.label}</th>`;
+    const cls = lbSort.col === c.key
+      ? (lbSort.dir === "asc" ? "sorted-asc" : "sorted-desc") : "";
+    return `<th class="${cls}" onclick="setSort('${c.key}')">${c.label}</th>`;
+  }).join("");
+
+  const trs = visible.map((r, i) => {
+    const rank   = filtered.indexOf(r) + 1;
+    const rankCls = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : "";
+    const scorePct = Math.round((r.score || 0) * 100);
+    const scoreC   = scoreColor(r.score || 0);
+    const repo     = r.hf_repo_id || "";
+    const rev      = r.hf_revision ? `<span class="hf-rev">${r.hf_revision.slice(0,7)}</span>` : "";
+    const repoLink = repo
+      ? `<a class="hf-link" href="https://huggingface.co/${repo}" target="_blank" rel="noopener">${repo}</a>${rev}`
+      : `<span style="color:var(--muted)">—</span>`;
+    const hk = r.hotkey || "";
+    const hkDisplay = hk ? `${hk.slice(0,6)}…${hk.slice(-4)}` : "—";
+    const evalLabels = (r.evaluated_by_validator_labels || []).map(l =>
+      `<span class="eval-chip">${l}</span>`).join("");
+
+    // val_loss cell: current value + aggregated min/avg/max from history
+    const agg = vlAgg(r.uid);
+    let vlCell;
+    if (r.val_loss == null) {
+      vlCell = `<span class="loss-val loss-none">—</span>`;
+    } else if (agg && agg.count > 1) {
+      vlCell = `
+        <div class="vl-agg">
+          <span class="vl-current loss-val ${lossClass(r.val_loss)}">${fmtF(r.val_loss, 4)}</span>
+          <div class="vl-minmax">
+            <span><span class="vl-mini-lbl">mn</span> ${fmtF(agg.min, 4)}</span>
+            <span><span class="vl-mini-lbl">avg</span> ${fmtF(agg.avg, 4)}</span>
+            <span><span class="vl-mini-lbl">mx</span> ${fmtF(agg.max, 4)}</span>
+          </div>
+        </div>`;
+    } else {
+      vlCell = `<span class="loss-val ${lossClass(r.val_loss)}">${fmtF(r.val_loss, 4)}</span>`;
+    }
+
+    return `<tr style="cursor:pointer" onclick="openMinerModal(${r.uid})">
+      <td><span class="rank ${rankCls}">${rank}</span></td>
+      <td style="font-weight:600">${r.uid}</td>
+      <td>
+        <div class="score-cell">
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${scorePct}%;background:${scoreC}"></div></div>
+          <span class="score-num" style="color:${scoreC}">${fmtF(r.score,4)}</span>
+        </div>
+      </td>
+      <td>${vlCell}</td>
+      <td><span class="weight-val">${r.weight_submitted != null ? fmtF(r.weight_submitted,4) : "—"}</span></td>
+      <td><div class="eval-chips">${evalLabels || '<span style="color:var(--muted)">—</span>'}</div></td>
+      <td>${r.in_assignment ? '<span class="badge-assigned">Active</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${repoLink}</td>
+      <td><span class="hotkey" title="${hk}" onclick="navigator.clipboard?.writeText('${hk}')">${hkDisplay}</span></td>
+    </tr>`;
+  }).join("");
+
+  const showMoreRow = filtered.length > lbShowCount
+    ? `<tr class="show-more-row"><td colspan="9"><button class="show-more-btn" onclick="showMore()">Show more (${filtered.length - lbShowCount} remaining)</button></td></tr>`
+    : "";
+
+  const tableHTML = `
+      <table>
+        <thead><tr>${ths}</tr></thead>
+        <tbody>${trs}${showMoreRow}</tbody>
+      </table>`;
+
+  // val_loss chart (rendered on full refresh, outside tableOnly path)
+  const { html: chartHTML, stats: ss } = buildVlChart(lbData);
+  let summaryHTML = "";
+  if (ss) {
+    summaryHTML = `
+      <div class="vl-chart-card">
+        <div class="vl-chart-header">
+          <span class="vl-chart-title">Val Loss Distribution</span>
+          <div class="vl-stats-row">
+            <span class="vl-chip vl-chip-count">${ss.count} scored</span>
+            <span class="vl-chip vl-chip-best">best ${fmtF(ss.best, 4)}</span>
+            <span class="vl-chip vl-chip-avg">avg ${fmtF(ss.avg, 4)}</span>
+            <span class="vl-chip vl-chip-median">med ${fmtF(ss.median, 4)}</span>
+            <span class="vl-chip vl-chip-worst">worst ${fmtF(ss.worst, 4)}</span>
           </div>
         </div>
-        <div class="num">${fmt(start)}</div>
-        <div class="num">${fmt(end)}</div>
-        <div class="num ${isCurrent ? 'highlight' : ''}">${until === 0 ? '▶ now' : fmt(until)}</div>
-      </div>
-    `;
-  }).join('');
+        <div class="vl-chart-wrap" id="vl-chart-wrap">${chartHTML}</div>
+        <div id="vl-tooltip" class="vl-tooltip" style="display:none"></div>
+      </div>`;
+  }
 
-  document.getElementById('timeline').innerHTML = rows;
+  if (!tableOnly) {
+    document.getElementById("lb-filter-tabs").innerHTML = `
+        <button class="ftab ${lbFilter==="all"?"active":""}"      onclick="setFilter('all')">All <span style="opacity:.6">${lbData.length}</span></button>
+        <button class="ftab ${lbFilter==="scored"?"active":""}"   onclick="setFilter('scored')">Scored</button>
+        <button class="ftab ${lbFilter==="assigned"?"active":""}" onclick="setFilter('assigned')">Assigned</button>`;
+    const inp = document.getElementById("lb-search-input");
+    if (inp && inp.value !== lbSearch) inp.value = lbSearch;
+
+    // update summary bar (only on full data refresh, not on sort/filter/search)
+    let sumEl = document.getElementById("lb-vl-summary");
+    if (!sumEl) {
+      sumEl = document.createElement("div");
+      sumEl.id = "lb-vl-summary";
+      const wrap = document.getElementById("lb-table-wrap");
+      wrap.parentNode.insertBefore(sumEl, wrap);
+    }
+    sumEl.innerHTML = summaryHTML;
+
+    // tooltip hover for bar chart
+    const chartWrap = document.getElementById("vl-chart-wrap");
+    const tip       = document.getElementById("vl-tooltip");
+    if (chartWrap && tip) {
+      chartWrap.addEventListener("mousemove", e => {
+        const bar = e.target.closest(".vl-bar");
+        if (!bar) { tip.style.display = "none"; return; }
+        const base = chartWrap.getBoundingClientRect();
+        tip.style.display = "block";
+        tip.style.left = (e.clientX - base.left + 12) + "px";
+        tip.style.top  = (e.clientY - base.top  - 34) + "px";
+        tip.textContent = `UID ${bar.dataset.uid}  ·  val_loss ${bar.dataset.loss}`;
+      });
+      chartWrap.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    }
+  }
+
+  document.getElementById("lb-count").textContent = `${filtered.length} miners`;
+  document.getElementById("lb-table-wrap").innerHTML = tableHTML;
 }
 
-function renderPrevPhase(prev) {
-  const items = PHASE_ORDER.map(name => {
-    const data = prev[name];
-    if (!data) return '';
-    const [start, end] = data;
-    return `
-      <div class="prev-item">
-        <div class="prev-name" style="color:${phaseColor(name)}">${name}</div>
-        <div class="prev-blocks">${fmt(start)} – ${fmt(end)}</div>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('prev-phase-card').innerHTML = `<div class="prev-grid">${items}</div>`;
+function setFilter(f) { lbFilter = f; lbShowCount = 50; renderLeaderboard(false); }
+function setSort(col) {
+  if (lbSort.col === col) lbSort.dir = lbSort.dir === "asc" ? "desc" : "asc";
+  else { lbSort = { col, dir: col === "val_loss" ? "asc" : "desc" }; }
+  renderLeaderboard(false);
 }
+function showMore() { lbShowCount += 50; renderLeaderboard(true); }
 
-function renderWhitelist(list) {
-  const items = list.map((addr, i) => `
-    <div class="address-item">
-      <div class="addr-idx">${i + 1}</div>
-      <div class="addr-text">${addr}</div>
-    </div>
-  `).join('');
-  document.getElementById('whitelist-card').innerHTML = `<div class="address-list">${items}</div>`;
-}
-
-function renderPeers(peers) {
-  const items = peers.map((raw, i) => {
-    const parts = parseMultiaddr(raw);
-    const chips = parts.map(p => `<span class="peer-part ${p.type}">${p.val}</span>`).join('');
-    return `
-      <div class="peer-item">
-        <div class="peer-label">Peer ${i + 1}</div>
-        <div class="peer-parts">${chips}</div>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('peer-card').innerHTML = `<div class="peer-list">${items}</div>`;
-}
-
-// ── Fetch & update ──────────────────────────────────────────────────────────
+// ── fetch & refresh ──────────────────────────────────────────────────────────
 async function refresh() {
-  document.getElementById('spin-icon').style.display = 'inline-block';
+  document.getElementById("spin").style.display = "inline-block";
   try {
-    const res  = await fetch('/api/all');
-    const data = await res.json();
+    const [all, lb] = await Promise.all([
+      fetch("/api/all").then(r => r.json()),
+      fetch("/api/leaderboard").then(r => r.json()),
+    ]);
 
-    document.getElementById('error-box').style.display = 'none';
+    document.getElementById("err").style.display = "none";
 
-    if (data.get_phase)                renderPhaseHero(data.get_phase);
-    if (data.blocks_until_next_phase)  renderTimeline(data.get_phase?.phase_name, data.blocks_until_next_phase);
-    if (data.previous_phase_blocks)    renderPrevPhase(data.previous_phase_blocks);
-    if (data.get_validator_whitelist)  renderWhitelist(data.get_validator_whitelist);
-    if (data.get_init_peer_id)         renderPeers(data.get_init_peer_id);
+    // Current Phase
+    if (all.get_phase) {
+      renderPhaseCard(all.get_phase, lb.data.phase, all.blocks_until_next_phase);
+    }
 
-    const now = new Date();
-    document.getElementById('last-updated').textContent =
-      now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  } catch (err) {
-    const box = document.getElementById('error-box');
-    box.style.display = 'block';
-    box.textContent = `Failed to fetch data: ${err.message}`;
+    // Round card
+    renderRound(lb.data.round);
+
+    // Leaderboard
+    lbData = lb.data.leaderboard || [];
+    // accumulate per-uid val_loss history before rendering
+    for (const r of lbData) vlPush(r.uid, r.val_loss, r.score, r.hf_revision);
+    renderLeaderboard();
+
+    document.getElementById("ts").textContent =
+      new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+
+  } catch (e) {
+    const el = document.getElementById("err");
+    el.style.display = "block";
+    el.textContent = "Failed to fetch: " + e.message;
   } finally {
-    document.getElementById('spin-icon').style.display = 'none';
+    document.getElementById("spin").style.display = "none";
   }
 }
 
+// Normalize cycle API phase (different field names) → leaderboard API shape
+function normalizeCyclePhase(cp, prevUpcoming) {
+  return {
+    name:             cp.phase_name,
+    index:            cp.phase_index,
+    started_at_block: cp.phase_start_block,
+    ends_at_block:    cp.phase_end_block,
+    blocks_remaining: cp.blocks_remaining_in_phase,
+    head_block:       cp.block,
+    cycle_index:      cp.cycle_index,
+    cycle_length:     cp.cycle_length,
+    upcoming:         prevUpcoming || [],
+  };
+}
+
+// cycle data refreshes every 6s, leaderboard every 18s
+let lbAge = 0;
+async function tick() {
+  lbAge++;
+  if (lbAge >= 3) { lbAge = 0; await refresh(); }
+  else {
+    document.getElementById("spin").style.display = "inline-block";
+    try {
+      const all = await fetch("/api/all").then(r => r.json());
+      if (all.get_phase) {
+        renderPhaseCard(all.get_phase, null, all.blocks_until_next_phase);
+      }
+      document.getElementById("ts").textContent =
+        new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+    } catch {}
+    document.getElementById("spin").style.display = "none";
+  }
+}
+
+document.getElementById("lb-search-input").addEventListener("input", function () {
+  lbSearch = this.value;
+  lbShowCount = 50;
+  renderLeaderboard(true);
+});
+
 refresh();
-setInterval(refresh, 6000);
+setInterval(tick, 6000);
 </script>
+<!-- Miner detail modal -->
+<div id="miner-modal" class="miner-modal" onclick="if(event.target===this)closeMinerModal()" style="display:none">
+  <div class="miner-modal-box">
+    <div class="miner-modal-header">
+      <div id="miner-modal-title" class="miner-modal-title"></div>
+      <button class="miner-modal-close" onclick="closeMinerModal()">✕</button>
+    </div>
+    <div id="miner-modal-body" class="miner-modal-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
